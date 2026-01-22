@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ramadan Kareem 2026 | Smart Universe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --gold: #d4af37;
+            --light-gold: #ffdd88;
+            --glass: rgba(255, 255, 255, 0.08);
+            --border: rgba(212, 175, 55, 0.3);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            color: #fff;
+            background: radial-gradient(circle at bottom, #0b1026, #02030a);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* ===== UNIVERSE BACKGROUND ===== */
+        .universe { position: fixed; inset: 0; z-index: 0; }
+        #starsCanvas { position: absolute; inset: 0; }
+        .nebula {
+            position: absolute; width: 140%; height: 140%;
+            background: radial-gradient(circle at 30% 40%, rgba(138,43,226,0.15), transparent 40%),
+                        radial-gradient(circle at 70% 60%, rgba(30,144,255,0.12), transparent 45%),
+                        radial-gradient(circle at 50% 80%, rgba(212,175,55,0.10), transparent 50%);
+            animation: floatNebula 45s linear infinite;
+        }
+        @keyframes floatNebula {
+            0% { transform: translate(0,0) rotate(0deg); }
+            50% { transform: translate(-40px, -30px) rotate(180deg); }
+            100% { transform: translate(0,0) rotate(360deg); }
+        }
+
+        /* ===== UI ===== */
+        .container { position: relative; z-index: 2; max-width: 1000px; margin: auto; padding: 40px 20px; }
+        header { text-align: center; margin-bottom: 30px; }
+        h1 {
+            font-family: 'Cinzel', serif; font-weight: 700; font-size: clamp(2rem, 8vw, 3.5rem); margin: 0;
+            background: linear-gradient(135deg, var(--gold), var(--light-gold));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 4px;
+        }
+
+        .search-card {
+            background: var(--glass); backdrop-filter: blur(16px); border-radius: 18px;
+            padding: 20px; border: 1px solid var(--border); margin-bottom: 30px;
+        }
+        input {
+            width: 100%; padding: 14px; border-radius: 12px; border: none; outline: none;
+            background: rgba(0,0,0,0.5); color: #fff; font-size: 15px; text-align: center;
+        }
+        .suggestions { margin-top: 8px; background: rgba(0,0,0,0.8); border-radius: 10px; overflow: hidden; text-align: left; }
+        .suggestions div { padding: 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .suggestions div:hover { background: var(--gold); color: #000; }
+
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .stat-card {
+            background: var(--glass); backdrop-filter: blur(16px); border-radius: 18px;
+            padding: 25px; border: 1px solid var(--border); text-align: center;
+            transition: transform 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-5px); border-color: var(--gold); }
+        .stat-card h3 { color: var(--gold); font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; margin-top: 0; opacity: 0.9; }
+        .timer-val { font-size: 2.1rem; font-weight: 600; margin: 10px 0; }
+        .date-sub { font-size: 0.85rem; opacity: 0.7; font-weight: 300; }
+
+        .table-wrapper { background: var(--glass); backdrop-filter: blur(16px); border-radius: 20px; border: 1px solid var(--border); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { background: rgba(212,175,55,0.1); color: var(--gold); padding: 18px; text-align: left; font-family: 'Cinzel', serif; }
+        td { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .today-row { background: rgba(212, 175, 55, 0.2) !important; border-left: 5px solid var(--gold); font-weight: bold; }
+
+        .loading-overlay {
+            position: fixed; inset: 0; background: #02030a; z-index: 1000;
+            display: flex; justify-content: center; align-items: center;
+            font-family: 'Cinzel'; font-size: 1.5rem; color: var(--gold);
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 30px 20px;
+            margin-top: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border);
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+        .footer-heart { color: #ff4d4d; animation: heartbeat 1.5s infinite; display: inline-block; }
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="loader" class="loading-overlay">ALIGNING STARS...</div>
+
+<div class="universe">
+    <canvas id="starsCanvas"></canvas>
+    <div class="nebula"></div>
+</div>
+
+<div class="container">
+    <header>
+        <h1>Ramadan Kareem</h1>
+        <div id="display-loc" style="color: var(--gold); margin-top: 10px; letter-spacing: 2px; font-weight: 300;">Rapid City, US</div>
+    </header>
+
+    <div class="search-card">
+        <input id="locationInput" placeholder="Detecting your location..." autocomplete="off">
+        <div class="suggestions" id="suggestions"></div>
+    </div>
+
+    <div class="dashboard">
+        <div class="stat-card">
+            <h3 id="suhoor-label">Next Suhoor</h3>
+            <div class="timer-val" id="suhoor-time">--:--</div>
+            <div class="date-sub" id="suhoor-date">-- ---</div>
+        </div>
+        <div class="stat-card">
+            <h3 id="timer-label">Countdown</h3>
+            <div class="timer-val" id="countdown">00:00:00</div>
+            <div class="date-sub">Remaining Time</div>
+        </div>
+        <div class="stat-card">
+            <h3 id="iftar-label">Next Iftar</h3>
+            <div class="timer-val" id="iftar-time">--:--</div>
+            <div class="date-sub" id="iftar-date">-- ---</div>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Day</th><th>Date</th><th>Sehri (Ends)</th><th>Iftar (Starts)</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<footer>
+    Made with <span class="footer-heart">❤</span> Syed Rakesh Uddin
+</footer>
+
+<script>
+// Stars Canvas
+const canvas = document.getElementById('starsCanvas');
+const ctx = canvas.getContext('2d');
+let stars = [];
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener('resize', resize); resize();
+for (let i = 0; i < 250; i++) { stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, r: Math.random() * 1.2 + 0.3, s: Math.random() * 0.3 + 0.05 }); }
+function animateStars() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = "#fff";
+    stars.forEach(s => { ctx.globalAlpha = Math.random(); ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill(); s.y += s.s; if (s.y > canvas.height) s.y = 0; });
+    requestAnimationFrame(animateStars);
+}
+animateStars();
+
+// Data Management
+let currentData = [];
+let timerInterval;
+const locationInput = document.getElementById("locationInput");
+const suggestionsBox = document.getElementById("suggestions");
+
+async function init() {
+    try {
+        const res = await fetch('https://ipapi.co/json/');
+        const loc = await res.json();
+        locationInput.value = loc.city + ", " + loc.country_name;
+        fetchData(loc.city, loc.country_name);
+    } catch (e) { fetchData("Rapid City", "USA"); }
+}
+
+locationInput.addEventListener("input", () => {
+    if (locationInput.value.length < 3) { suggestionsBox.innerHTML = ""; return; }
+    fetch(`https://nominatim.openstreetmap.org/search?q=${locationInput.value}&format=json&addressdetails=1&limit=5`)
+    .then(res => res.json()).then(data => {
+        suggestionsBox.innerHTML = "";
+        data.forEach(place => {
+            const div = document.createElement("div"); div.textContent = place.display_name;
+            div.onclick = () => { locationInput.value = place.display_name; suggestionsBox.innerHTML = ""; const city = place.address.city || place.address.town || place.address.state || place.display_name.split(',')[0]; const country = place.address.country; fetchData(city, country); };
+            suggestionsBox.appendChild(div);
+        });
+    });
+});
+
+async function fetchData(city, country) {
+    document.getElementById('loader').style.display = 'flex';
+    try {
+        const hYear = 1447; 
+        const res = await fetch(`https://api.aladhan.com/v1/hijriCalendarByCity/${hYear}/9?city=${city}&country=${country}&method=2`);
+        const json = await res.json();
+        currentData = json.data;
+        renderUI(city, country);
+        document.getElementById('loader').style.display = 'none';
+    } catch (err) { alert("Location error."); document.getElementById('loader').style.display = 'none'; }
+}
+
+function format12h(t) {
+    let [h, m] = t.split(' ')[0].split(':');
+    h = parseInt(h); const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12; return `${h}:${m} ${ampm}`;
+}
+
+function parseApiDate(apiDate, apiTime) {
+    const [d, m, y] = apiDate.split(' ');
+    const months = {Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11};
+    const [hh, mm] = apiTime.split(' ')[0].split(':');
+    return new Date(y, months[m], d, hh, mm);
+}
+
+function renderUI(city, country) {
+    document.getElementById('display-loc').innerText = `${city.toUpperCase()} • 2026`;
+    const tbody = document.getElementById('table-body'); tbody.innerHTML = "";
+    const now = new Date().toDateString();
+    currentData.forEach((day, i) => {
+        const tr = document.createElement('tr');
+        const rowDate = parseApiDate(day.date.readable, "00:00");
+        if(rowDate.toDateString() === now) tr.className = 'today-row';
+        tr.innerHTML = `<td>Day ${i+1}</td><td>${day.date.readable}</td><td style="color:#81ecec">${format12h(day.timings.Fajr)}</td><td style="color:#fab1a0">${format12h(day.timings.Maghrib)}</td>`;
+        tbody.appendChild(tr);
+    });
+    startTimer();
+}
+
+function startTimer() {
+    if(timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        const now = new Date();
+        const todayIdx = currentData.findIndex(d => parseApiDate(d.date.readable, "00:00").toDateString() === now.toDateString());
+        
+        let target, label;
+
+        if (todayIdx !== -1) {
+            // RAMADAN IS ACTIVE
+            const todayData = currentData[todayIdx];
+            const s = parseApiDate(todayData.date.readable, todayData.timings.Fajr);
+            const i = parseApiDate(todayData.date.readable, todayData.timings.Maghrib);
+            
+            // Handle Suhoor Card
+            if (now < s) {
+                document.getElementById('suhoor-label').innerText = "Today's Suhoor";
+                document.getElementById('suhoor-time').innerText = format12h(todayData.timings.Fajr);
+                document.getElementById('suhoor-date').innerText = todayData.date.readable.split(' ').slice(0,2).join(' ');
+                target = s; label = "Suhoor Ends In";
+            } else {
+                const nextS = currentData[todayIdx + 1];
+                if (nextS) {
+                    document.getElementById('suhoor-label').innerText = "Tomorrow's Suhoor";
+                    document.getElementById('suhoor-time').innerText = format12h(nextS.timings.Fajr);
+                    document.getElementById('suhoor-date').innerText = nextS.date.readable.split(' ').slice(0,2).join(' ');
+                }
+                if (now < i) { target = i; label = "Iftar Starts In"; }
+                else {
+                    label = "Next Suhoor";
+                    if (nextS) target = parseApiDate(nextS.date.readable, nextS.timings.Fajr);
+                }
+            }
+
+            // Handle Iftar Card
+            if (now < i) {
+                document.getElementById('iftar-label').innerText = "Today's Iftar";
+                document.getElementById('iftar-time').innerText = format12h(todayData.timings.Maghrib);
+                document.getElementById('iftar-date').innerText = todayData.date.readable.split(' ').slice(0,2).join(' ');
+            } else {
+                const nextI = currentData[todayIdx + 1];
+                if (nextI) {
+                    document.getElementById('iftar-label').innerText = "Next Iftar";
+                    document.getElementById('iftar-time').innerText = format12h(nextI.timings.Maghrib);
+                    document.getElementById('iftar-date').innerText = nextI.date.readable.split(' ').slice(0,2).join(' ');
+                }
+            }
+        } else {
+            // PRE-RAMADAN MODE
+            const first = currentData[0];
+            const start = parseApiDate(first.date.readable, first.timings.Fajr);
+            
+            document.getElementById('suhoor-label').innerText = "Opening Suhoor";
+            document.getElementById('suhoor-time').innerText = format12h(first.timings.Fajr);
+            document.getElementById('suhoor-date').innerText = first.date.readable.split(' ').slice(0,2).join(' ');
+
+            document.getElementById('iftar-label').innerText = "First Iftar";
+            document.getElementById('iftar-time').innerText = format12h(first.timings.Maghrib);
+            document.getElementById('iftar-date').innerText = first.date.readable.split(' ').slice(0,2).join(' ');
+
+            if(now < start) { target = start; label = "Starts In"; }
+            else { document.getElementById('countdown').innerText = "Eid Mubarak!"; return; }
+        }
+
+        if(target) {
+            const diff = target - now;
+            const d = Math.floor(diff/86400000);
+            const h = Math.floor((diff%86400000)/3600000).toString().padStart(2,'0');
+            const m = Math.floor((diff%3600000)/60000).toString().padStart(2,'0');
+            const s = Math.floor((diff%60000)/1000).toString().padStart(2,'0');
+            document.getElementById('timer-label').innerText = label;
+            document.getElementById('countdown').innerText = d > 0 ? `${d}d ${h}:${m}:${s}` : `${h}:${m}:${s}`;
+        }
+    }, 1000);
+}
+init();
+</script>
+</body>
+</html>
