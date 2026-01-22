@@ -434,7 +434,7 @@ function parseApiDate(apiDate, apiTime) {
 }
 
 function renderUI(city, country) {
-    document.getElementById('display-loc').innerText = `${city.toUpperCase()} • 2026`;
+    document.getElementById('display-loc').innerText = `${city.toUpperCase()} • ${currentYear}`;
     const tbody = document.getElementById('table-body'); tbody.innerHTML = "";
     const now = new Date().toDateString();
     currentData.forEach((day, i) => {
