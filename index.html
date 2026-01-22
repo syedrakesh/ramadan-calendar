@@ -91,6 +91,59 @@
             font-family: 'Cinzel'; font-size: 1.5rem; color: var(--gold);
         }
 
+        /* Wallpaper Mode Styles */
+        .wallpaper-clock {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .wallpaper-clock h2 {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(4rem, 15vw, 10rem);
+            margin: 0;
+            background: linear-gradient(to bottom, #fff, var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+        }
+
+        .wallpaper-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 101;
+            background: var(--glass);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            font-family: 'Montserrat', sans-serif;
+            transition: 0.3s;
+        }
+
+        .wallpaper-btn:hover {
+            background: var(--gold);
+            color: #000;
+        }
+
+        /* Hide UI elements in fullscreen */
+        body.fullscreen-active .container, 
+        body.fullscreen-active footer {
+            display: none;
+        }
+
+        body.fullscreen-active .wallpaper-clock {
+            display: block;
+        }
+
         /* ===== FOOTER ===== */
         footer {
             position: relative;
@@ -115,6 +168,13 @@
 </head>
 
 <body>
+
+<button class="wallpaper-btn" onclick="toggleWallpaper()">✨ Wallpaper Mode</button>
+
+<div class="wallpaper-clock" id="wallpaperClock">
+    <h2 id="wall-time">00:00:00</h2>
+    <div id="wall-date" style="letter-spacing: 5px; opacity: 0.8; font-size: 1.2rem;"></div>
+</div>
 
 <div id="loader" class="loading-overlay">ALIGNING STARS...</div>
 
@@ -359,6 +419,36 @@ function startTimer() {
         }
     }, 1000);
 }
+
+function toggleWallpaper() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            alert(`Error attempting to enable full-screen mode: ${err.message}`);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+// Listen for fullscreen changes to toggle UI
+document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement) {
+        document.body.classList.add('fullscreen-active');
+    } else {
+        document.body.classList.remove('fullscreen-active');
+    }
+});
+
+// Wallpaper Clock Update
+setInterval(() => {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const dateStr = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    
+    document.getElementById('wall-time').innerText = timeStr;
+    document.getElementById('wall-date').innerText = dateStr.toUpperCase();
+}, 1000);
+
 init();
 </script>
 </body>
