@@ -164,6 +164,27 @@
             50% { transform: scale(1.2); }
             100% { transform: scale(1); }
         }
+
+        /* Mobile Optimization for Wallpaper Mode */
+        @media (max-width: 768px) {
+            body.fullscreen-active {
+                position: fixed; /* Prevents scrolling */
+                width: 100vw;
+                height: 100vh;
+                overflow: hidden;
+            }
+            
+            .wallpaper-clock h2 {
+                font-size: 4rem; /* Scale down the giant clock for small screens */
+            }
+        }
+
+        /* Ensure the button is clickable on mobile */
+        .wallpaper-btn {
+            -webkit-tap-highlight-color: transparent;
+            padding: 15px 25px; /* Larger hit area for thumbs */
+            font-size: 16px; 
+        }
     </style>
 </head>
 
@@ -421,12 +442,19 @@ function startTimer() {
 }
 
 function toggleWallpaper() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-            alert(`Error attempting to enable full-screen mode: ${err.message}`);
-        });
+    const docElm = document.documentElement;
+    const requestMethod = docElm.requestFullscreen || docElm.mozRequestFullScreen || docElm.webkitRequestFullScreen || docElm.msRequestFullscreen;
+
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (requestMethod) {
+            requestMethod.call(docElm);
+        } else {
+            // iOS Fallback: Manually toggle a class if Fullscreen API is unavailable
+            document.body.classList.toggle('fullscreen-active');
+        }
     } else {
-        document.exitFullscreen();
+        const exitMethod = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+        if (exitMethod) exitMethod.call(document);
     }
 }
 
@@ -448,6 +476,18 @@ setInterval(() => {
     document.getElementById('wall-time').innerText = timeStr;
     document.getElementById('wall-date').innerText = dateStr.toUpperCase();
 }, 1000);
+
+// Add webkit prefix listener for Safari/iOS
+document.addEventListener('webkitfullscreenchange', handleFSChange);
+document.addEventListener('fullscreenchange', handleFSChange);
+
+function handleFSChange() {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+        document.body.classList.add('fullscreen-active');
+    } else {
+        document.body.classList.remove('fullscreen-active');
+    }
+}
 
 init();
 </script>
