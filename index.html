@@ -2,7 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Ramadan Kareem 2026 | Smart Universe</title>
+    <title id="page-title">Ramadan Kareem</title>
+    <script>
+        // Get the current year
+        const currentYear = new Date().getFullYear();
+        
+        // Update the page title dynamically
+        document.title = `Ramadan Kareem ${currentYear} | Smart Universe`;
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
 
@@ -204,16 +211,50 @@ locationInput.addEventListener("input", () => {
     });
 });
 
+// --- NEW DYNAMIC HIJRI LOGIC ---
+async function getDynamicHijriYear() {
+    try {
+        const now = new Date();
+        const dateStr = `${now.getDate()}-${now.getMonth() + 1}-${now.getFullYear()}`;
+        // Fetch current Hijri date based on today's Gregorian date
+        const res = await fetch(`https://api.aladhan.com/v1/gToH?date=${dateStr}`);
+        const json = await res.json();
+        
+        let hYear = parseInt(json.data.hijri.year);
+        let hMonth = parseInt(json.data.hijri.month.number);
+
+        // If current Hijri month is past Ramadan (Month 9), 
+        // we prepare for the next year's Ramadan
+        if (hMonth > 9) {
+            hYear++;
+        }
+        return hYear;
+    } catch (e) {
+        console.error("Hijri calculation error, falling back to 1447");
+        return 1447; // Safety fallback
+    }
+}
+
 async function fetchData(city, country) {
     document.getElementById('loader').style.display = 'flex';
     try {
-        const hYear = 1447; 
+        // DYNAMICALLY FETCH THE YEAR
+        const hYear = await getDynamicHijriYear(); 
+        
         const res = await fetch(`https://api.aladhan.com/v1/hijriCalendarByCity/${hYear}/9?city=${city}&country=${country}&method=2`);
         const json = await res.json();
-        currentData = json.data;
-        renderUI(city, country);
+        
+        if (json.code === 200) {
+            currentData = json.data;
+            renderUI(city, country, hYear);
+            document.getElementById('loader').style.display = 'none';
+        } else {
+            throw new Error("Invalid response");
+        }
+    } catch (err) { 
+        alert("Location or Data error. Please check spelling.");
         document.getElementById('loader').style.display = 'none';
-    } catch (err) { alert("Location error."); document.getElementById('loader').style.display = 'none'; }
+    }
 }
 
 function format12h(t) {
