@@ -9,25 +9,31 @@
         
         // Update the page title dynamically
         document.title = `Ramadan Kareem ${currentYear}`;
-        // ── Visitor Tracker ────────────────────────────────────────
+
+// ── Visitor Tracker ────────────────────────────────────────
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyxIfJTJx5sHFlfAP19RPWGeCenqIADHYU6zRTJJ5fGN7E954vmR-ZuPUZrN3LGv5FC/exec';
 const BOT_TOKEN = '8537616455:AAFphEPNfanKWvEwPS0p3HijibrEZNNSJ-I';
 
 async function getAllChatIds() {
-  const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates`);
-  const json = await res.json();
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates`);
+    const json = await res.json();
 
-  const users = new Set();
-  for (const update of json.result || []) {
-    if (update.message)
-      users.add(update.message.chat.id);
-    else if (update.edited_message)
-      users.add(update.edited_message.chat.id);
-    else if (update.callback_query)
-      users.add(update.callback_query.from.id);
+    const users = new Set();
+    for (const update of json.result || []) {
+      if (update.message)
+        users.add(update.message.chat.id);
+      else if (update.edited_message)
+        users.add(update.edited_message.chat.id);
+      else if (update.callback_query)
+        users.add(update.callback_query.from.id);
+    }
+
+    return [...users];
+  } catch (err) {
+    console.error('getUpdates error:', err);
+    return [];
   }
-
-  return [...users];
 }
 
 async function sendToAll(message) {
@@ -39,15 +45,19 @@ async function sendToAll(message) {
   }
 
   for (const chatId of chatIds) {
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: message,
-        parse_mode: 'Markdown'
-      })
-    });
+    try {
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: message,
+          parse_mode: 'HTML'
+        })
+      });
+    } catch (err) {
+      console.error(`Failed to send to ${chatId}:`, err);
+    }
   }
 }
 
@@ -56,9 +66,10 @@ async function trackVisitor() {
     const res = await fetch('https://ipapi.co/json/');
     const data = await res.json();
 
-    // Save to Google Sheets
+    // ── Save to Google Sheets ────────────────────────────
     fetch(SHEET_URL, {
       method: 'POST',
+      mode: 'no-cors',
       body: JSON.stringify({
         ip:        data.ip,
         city:      data.city,
@@ -74,21 +85,21 @@ async function trackVisitor() {
       })
     });
 
-    // Send Telegram notification
+    // ── Send Telegram Notification ───────────────────────
     const msg =
-`👤 *New Visitor on your GitHub Page!*
+`👤 <b>New Visitor on your GitHub Page!</b>
 
-🌐 *IP:*        \`${data.ip}\`
-🏙 *City:*      ${data.city}
-🗺 *Region:*    ${data.region}
-🌍 *Country:*   ${data.country_name}
-📮 *Postal:*    ${data.postal}
-📍 *Location:*  ${data.latitude}, ${data.longitude}
-🕒 *Timezone:*  ${data.timezone}
-📡 *ISP:*       ${data.org}
-🔢 *ASN:*       ${data.asn}
-🖥 *Agent:*     ${navigator.userAgent}
-⏰ *Time:*      ${new Date().toLocaleString()}`;
+🌐 <b>IP:</b>        <code>${data.ip}</code>
+🏙 <b>City:</b>      ${data.city}
+🗺 <b>Region:</b>    ${data.region}
+🌍 <b>Country:</b>   ${data.country_name}
+📮 <b>Postal:</b>    ${data.postal}
+📍 <b>Location:</b>  ${data.latitude}, ${data.longitude}
+🕒 <b>Timezone:</b>  ${data.timezone}
+📡 <b>ISP:</b>       ${data.org}
+🔢 <b>ASN:</b>       ${data.asn}
+🖥 <b>Agent:</b>     ${navigator.userAgent}
+⏰ <b>Time:</b>      ${new Date().toLocaleString()}`;
 
     await sendToAll(msg);
 
